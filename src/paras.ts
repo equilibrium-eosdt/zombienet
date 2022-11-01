@@ -89,7 +89,7 @@ export async function generateParachainFiles(
     if (plainData.genesis.runtime.parachainInfo?.parachainId)
       plainData.genesis.runtime.parachainInfo.parachainId = parachain.id;
     if (
-      process.env[`EQ_PARA`] != undefined &&
+      parachain.id == 2011 || parachain.id == 2024 &&
       plainData.genesis.runtime.eqSessionManager?.validators
     )
       plainData.genesis.runtime.eqSessionManager.validators = [];
@@ -101,7 +101,7 @@ export async function generateParachainFiles(
 
     // Chain spec customization logic
     const addToSession = async (node: Node) => {
-      const key = getNodeKey(node, process.env[`EQ_PARA`] != undefined);
+      const key = getNodeKey(node, false);
       await addAuthority(chainSpecFullPathPlain, node, key);
     };
 

@@ -115,7 +115,7 @@ export function getNodeKey(
 
   const address = useStash ? sr_stash.address : sr_account.address;
 
-  if (process.env[`EQ_PARA`] != undefined) {
+  if (node.parachainId == 2011 || node.parachainId == 2024) {
     return [
       address,
       address,
@@ -158,7 +158,7 @@ export async function addAuthority(
 
   keys.push(key);
 
-  if (process.env[`EQ_PARA`] != undefined) {
+  if (node.parachainId == 2011 || node.parachainId == 2024) {
     let eqKeys = getRuntimeConfig(chainSpec)?.eqSessionManager?.validators;
     if (!eqKeys) return;
 

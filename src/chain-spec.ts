@@ -115,7 +115,7 @@ export function getNodeKey(
 
   const address = useStash ? sr_stash.address : sr_account.address;
 
-  if (process.env[`EQ_PARA`] == undefined) {
+  if (process.env[`EQ_PARA`] != undefined) {
     return [
       address,
       address,

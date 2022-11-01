@@ -88,6 +88,11 @@ export async function generateParachainFiles(
     if (plainData.relay_chain) plainData.relay_chain = relayChainSpec.id;
     if (plainData.genesis.runtime.parachainInfo?.parachainId)
       plainData.genesis.runtime.parachainInfo.parachainId = parachain.id;
+    if (
+      process.env[`EQ_PARA`] != undefined &&
+      plainData.genesis.runtime.eqSessionManager?.validators
+    )
+      plainData.genesis.runtime.eqSessionManager.validators = [];
 
     writeChainSpec(chainSpecFullPathPlain, plainData);
 

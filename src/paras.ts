@@ -96,7 +96,7 @@ export async function generateParachainFiles(
 
     // Chain spec customization logic
     const addToSession = async (node: Node) => {
-      const key = getNodeKey(node, false);
+      const key = getNodeKey(node, process.env[`EQ_PARA`] != undefined);
       await addAuthority(chainSpecFullPathPlain, node, key);
     };
 

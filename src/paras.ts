@@ -7,7 +7,7 @@ import {
   GENESIS_WASM_FILENAME,
   WAIT_UNTIL_SCRIPT_SUFIX,
 } from "./constants";
-import { decorate } from "./paras-decorators";
+import { decorate, PARA } from "./paras-decorators";
 import { Providers } from "./providers";
 import { getClient } from "./providers/client";
 import { fileMap, Node, Parachain } from "./types";
@@ -89,7 +89,7 @@ export async function generateParachainFiles(
     if (plainData.genesis.runtime.parachainInfo?.parachainId)
       plainData.genesis.runtime.parachainInfo.parachainId = parachain.id;
     if (
-      parachain.id == 2011 || parachain.id == 2024 &&
+      parachain.para == PARA.Equilibrium &&
       plainData.genesis.runtime.eqSessionManager?.validators
     )
       plainData.genesis.runtime.eqSessionManager.validators = [];

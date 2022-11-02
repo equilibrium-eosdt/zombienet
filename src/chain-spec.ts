@@ -115,32 +115,23 @@ export function getNodeKey(
 
   const address = useStash ? sr_stash.address : sr_account.address;
 
-  if (node.parachainId == 2011 || node.parachainId == 2024) {
-    return [
-      address,
-      address,
-      {
-        aura: sr_account.address,
-        eq_rate: ed_account.address,
-      },
-    ];
-  } else {
-    return [
-      address,
-      address,
-      {
-        grandpa: ed_account.address,
-        babe: sr_account.address,
-        im_online: sr_account.address,
-        parachain_validator: sr_account.address,
-        authority_discovery: sr_account.address,
-        para_validator: sr_account.address,
-        para_assignment: sr_account.address,
-        beefy: encodeAddress(ec_account.publicKey),
-        aura: sr_account.address,
-      },
-    ];
-  }
+  const key: GenesisNodeKey = [
+    address,
+    address,
+    {
+      grandpa: ed_account.address,
+      babe: sr_account.address,
+      im_online: sr_account.address,
+      parachain_validator: sr_account.address,
+      authority_discovery: sr_account.address,
+      para_validator: sr_account.address,
+      para_assignment: sr_account.address,
+      beefy: encodeAddress(ec_account.publicKey),
+      aura: sr_account.address,
+    },
+  ];
+
+  return key;
 }
 
 // Add additional authorities to chain spec in `session.keys`
@@ -157,13 +148,6 @@ export async function addAuthority(
   if (!keys) return;
 
   keys.push(key);
-
-  if (node.parachainId == 2011 || node.parachainId == 2024) {
-    let eqKeys = getRuntimeConfig(chainSpec)?.eqSessionManager?.validators;
-    if (!eqKeys) return;
-
-    eqKeys.push(key[0]);
-  }
 
   new CreateLogTable({
     colWidths: [30, 20, 70],

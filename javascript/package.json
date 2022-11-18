@@ -11,6 +11,7 @@
   "license": "GPL-3.0-or-later",
   "private": true,
   "scripts": {
+    "prepare": "npm run clean && npm run build --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run clean && npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",

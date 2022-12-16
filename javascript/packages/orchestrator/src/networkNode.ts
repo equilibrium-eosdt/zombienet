@@ -78,7 +78,7 @@ export class NetworkNode implements NetworkNodeInterface {
       : `echo restart > /tmp/zombiepipe`;
     args.push(cmd);
 
-    const result = await client.runCommand(args, undefined, true);
+    const result = await client.runCommand(args, { scoped: true });
     if (result.exitCode !== 0) return false;
     // restart the port-fw if needed
     const url = new URL(this.wsUri);
@@ -106,7 +106,7 @@ export class NetworkNode implements NetworkNodeInterface {
       "-c",
       "echo pause > /tmp/zombiepipe",
     ];
-    const result = await client.runCommand(args, undefined, true);
+    const result = await client.runCommand(args, { scoped: true });
     return result.exitCode === 0;
   }
 
@@ -120,7 +120,7 @@ export class NetworkNode implements NetworkNodeInterface {
       "-c",
       "echo resume > /tmp/zombiepipe",
     ];
-    const result = await client.runCommand(args, undefined, true);
+    const result = await client.runCommand(args, { scoped: true });
     return result.exitCode === 0;
   }
 
@@ -134,7 +134,9 @@ export class NetworkNode implements NetworkNodeInterface {
       await this.apiInstance?.rpc.system.name();
       return true;
     } catch (err) {
-      console.log(err);
+      console.log(
+        `\n ${decorators.red("Error: ")} \t ${decorators.bright(err)}\n`,
+      );
       return false;
     } finally {
       if (limitTimeout) clearTimeout(limitTimeout);
@@ -210,8 +212,8 @@ export class NetworkNode implements NetworkNodeInterface {
       return value;
     } catch (err: any) {
       console.log(
-        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.red(
-          err.message,
+        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.bright(
+          err?.message,
         )}\n`,
       );
       return value || 0;
@@ -295,8 +297,8 @@ export class NetworkNode implements NetworkNodeInterface {
       return value || 0;
     } catch (err: any) {
       console.log(
-        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.red(
-          err.message,
+        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.bright(
+          err?.message,
         )}\n`,
       );
       return value;
@@ -364,8 +366,8 @@ export class NetworkNode implements NetworkNodeInterface {
       return value || 0;
     } catch (err: any) {
       console.log(
-        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.red(
-          err.message,
+        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.bright(
+          err?.message,
         )}\n`,
       );
       return value || 0;
@@ -415,8 +417,8 @@ export class NetworkNode implements NetworkNodeInterface {
       return total_count;
     } catch (err: any) {
       console.log(
-        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.red(
-          err.message,
+        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.bright(
+          err?.message,
         )}\n`,
       );
       return 0;
@@ -478,8 +480,8 @@ export class NetworkNode implements NetworkNodeInterface {
       return true;
     } catch (err: any) {
       console.log(
-        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.red(
-          err.message,
+        `\n\t ${decorators.red("Error: ")} \n\t\t ${decorators.bright(
+          err?.message,
         )}\n`,
       );
       return false;

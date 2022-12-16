@@ -32,28 +32,11 @@ import {
   DEFAULT_PROVIDER,
 } from "./constants";
 
-const DEFAULT_CUMULUS_COLLATOR_URL =
-  "https://github.com/paritytech/cumulus/releases/download/v0.9.270/polkadot-parachain";
-// const DEFAULT_ADDER_COLLATOR_URL =
-//   "https://gitlab.parity.io/parity/mirrors/polkadot/-/jobs/1769497/artifacts/raw/artifacts/adder-collator";
-
 interface OptIf {
   [key: string]: { name: string; url?: string; size?: string };
 }
 
-const options: OptIf = {
-  "polkadot-parachain": {
-    name: "polkadot-parachain",
-    url: DEFAULT_CUMULUS_COLLATOR_URL,
-    size: "120",
-  },
-  // // Deactivate for now
-  // adderCollator: {
-  //   name: "adderCollator",
-  //   url: DEFAULT_ADDER_COLLATOR_URL,
-  //   size: "950",
-  // },
-};
+const options: OptIf = {};
 
 const debug = require("debug")("zombie-cli");
 
@@ -64,7 +47,7 @@ let network: Network | undefined;
 // Download the binaries
 const downloadBinaries = async (binaries: string[]): Promise<void> => {
   try {
-    console.log(`${decorators.yellow("\nStart download...\n")}`);
+    console.log(decorators.yellow("\nStart download...\n"));
     const promises = [];
     let count = 0;
     for (let binary of binaries) {
@@ -94,7 +77,10 @@ const downloadBinaries = async (binaries: string[]): Promise<void> => {
           data.on("data", (chunk: any) => progressBar.tick(chunk.length));
           data.pipe(writer);
           data.on("end", () => {
-            console.log(decorators.yellow(`Binary "${name}" downloaded`));
+            console.log(
+              decorators.yellow(`Binary "${name}" downloaded to:`),
+              decorators.bright(`"${process.cwd()}".`),
+            );
             // Add permissions to the binary
             console.log(decorators.cyan(`Giving permissions to "${name}"`));
             fs.chmodSync(path.resolve(name), 0o755);
@@ -111,7 +97,11 @@ const downloadBinaries = async (binaries: string[]): Promise<void> => {
       decorators.blue(`export PATH=${process.cwd()}:$PATH`),
     );
   } catch (err) {
-    console.log("Unexpected error: ", err);
+    console.log(
+      `\n ${decorators.red("Unexpected error: ")} \t ${decorators.bright(
+        err,
+      )}\n`,
+    );
   }
 };
 
@@ -121,13 +111,29 @@ const latestPolkadotReleaseURL = async (
   name: string,
 ): Promise<[string, string]> => {
   try {
-    const res = await axios.get(
-      `https://api.github.com/repos/paritytech/${repo}/releases/latest`,
+    const allReleases = await axios.get(
+      `https://api.github.com/repos/paritytech/${repo}/releases`,
     );
-    const obj = res.data.assets.filter((a: any) => a.name === name);
+
+    let obj: any;
+    let tag_name;
+
+    const release = allReleases.data.find((r: any) => {
+      obj = r?.assets?.find((a: any) => a.name === name);
+      return Boolean(obj);
+    });
+
+    tag_name = release.tag_name;
+
+    if (!tag_name) {
+      throw new Error(
+        "Should never come to this point. Tag_name should never be undefined!",
+      );
+    }
+
     return [
-      `https://github.com/paritytech/${repo}/releases/download/${res.data.tag_name}/${name}`,
-      convertBytes(obj[0].size),
+      `https://github.com/paritytech/${repo}/releases/download/${tag_name}/${name}`,
+      convertBytes(obj.size),
     ];
   } catch (err: any) {
     if (err.code === "ENOTFOUND") {
@@ -135,7 +141,7 @@ const latestPolkadotReleaseURL = async (
     } else if (err.response && err.response.status === 404) {
       throw new Error("Could not find a release.");
     }
-    throw new Error(err);
+    throw new Error("`latestPolkadotReleaseURL` error: " + err);
   }
 };
 
@@ -275,7 +281,11 @@ process.on("unhandledRejection", async (err) => {
     await network.stop();
   }
   debug(err);
-  console.log(`UnhandledRejection: ${err}`);
+  console.log(
+    `\n${decorators.red("UnhandledRejection: ")} \t ${decorators.bright(
+      err,
+    )}\n`,
+  );
   process.exit(1001);
 });
 
@@ -403,7 +413,11 @@ async function spawn(
   const spawnConcurrency = opts.spawnConcurrency || 1;
   const configPath = resolve(process.cwd(), configFile);
   if (!fs.existsSync(configPath)) {
-    console.error("  ⚠ Config file does not exist: ", configPath);
+    console.error(
+      `${decorators.reverse(
+        decorators.red(`  ⚠ Config file does not exist: ${configPath}`),
+      )}`,
+    );
     process.exit();
   }
 
@@ -434,7 +448,11 @@ async function spawn(
       console.log(
         `Running ${config.settings?.provider || DEFAULT_PROVIDER} provider:`,
       );
-      console.error("  ⚠ I can't find the Creds file: ", credsFile);
+      console.error(
+        `${decorators.reverse(
+          decorators.red(`  ⚠ I can't find the Creds file: ${credsFile}`),
+        )}`,
+      );
       process.exit();
     }
   }
@@ -478,7 +496,7 @@ async function test(
   try {
     testDef = JSON.parse(parser.parse_to_json(content));
   } catch (e) {
-    console.log(e);
+    console.log(`\n ${decorators.red("Error:")} \t ${decorators.bright(e)}\n`);
     process.exit(1);
   }
 
@@ -500,7 +518,7 @@ async function test(
  * @returns
  */
 async function setup(params: any) {
-  console.log(`${decorators.green("\n\n🧟🧟🧟 ZombieNet Setup 🧟🧟🧟\n\n")}`);
+  console.log(decorators.green("\n\n🧟🧟🧟 ZombieNet Setup 🧟🧟🧟\n\n"));
   if (
     ["aix", "freebsd", "openbsd", "sunos", "win32"].includes(process.platform)
   ) {
@@ -509,11 +527,26 @@ async function setup(params: any) {
     );
     return;
   }
+
+  console.log(decorators.green("Gathering latest releases' versions...\n"));
   await new Promise<void>((resolve) => {
     latestPolkadotReleaseURL("polkadot", "polkadot").then(
       (res: [string, string]) => {
         options.polkadot = {
           name: "polkadot",
+          url: res[0],
+          size: res[1],
+        };
+        resolve();
+      },
+    );
+  });
+
+  await new Promise<void>((resolve) => {
+    latestPolkadotReleaseURL("cumulus", "polkadot-parachain").then(
+      (res: [string, string]) => {
+        options["polkadot-parachain"] = {
+          name: "polkadot-parachain",
           url: res[0],
           size: res[1],
         };
@@ -529,7 +562,7 @@ async function setup(params: any) {
       `${decorators.yellow(
         "Note: ",
       )} You are using MacOS. Please, clone the polkadot repo ` +
-        `${decorators.cyan("(https://github.com/paritytech/polkadot)")}` +
+        decorators.cyan("(https://github.com/paritytech/polkadot)") +
         ` and run it locally.\n At the moment there is no polkadot binary for MacOs.\n\n`,
     );
     const index = params.indexOf("polkadot");
@@ -539,9 +572,7 @@ async function setup(params: any) {
   }
 
   if (params.length === 0) {
-    console.log(
-      `${decorators.green("No more binaries to download. Exiting...")}`,
-    );
+    console.log(decorators.green("No more binaries to download. Exiting..."));
     return;
   }
   let count = 0;
@@ -553,7 +584,7 @@ async function setup(params: any) {
   });
   console.log("Total approx. size: ", count, "MB");
   const response = await askQuestion(
-    `${decorators.yellow("\nDo you want to continue? (y/n)")}`,
+    decorators.yellow("\nDo you want to continue? (y/n)"),
   );
   if (response.toLowerCase() !== "n" && response.toLowerCase() !== "y") {
     console.log("Invalid input. Exiting...");
@@ -577,7 +608,9 @@ async function convert(param: string) {
     // Read through the JSON and write to stream sample
     await convertInput(filePath);
   } catch (err) {
-    console.log("error", err);
+    console.log(
+      `\n ${decorators.red("Error: ")} \t ${decorators.bright(err)}\n`,
+    );
   }
 }
 

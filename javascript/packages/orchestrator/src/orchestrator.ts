@@ -132,9 +132,9 @@ export async function start(
         fs.mkdirSync(opts.dir);
       } else if (!opts.force) {
         const response = await askQuestion(
-          `${decorators.yellow(
+          decorators.yellow(
             "Directory already exists; \nDo you want to continue? (y/N)",
-          )}`,
+          ),
         );
         if (response.toLowerCase() !== "y") {
           console.log("Exiting...");
@@ -181,8 +181,8 @@ export async function start(
 
     const zombieTable = new CreateLogTable({
       head: [
-        `${decorators.green("🧟 Zombienet 🧟")}`,
-        `${decorators.green("Initiation")}`,
+        decorators.green("🧟 Zombienet 🧟"),
+        decorators.green("Initiation"),
       ],
       colWidths: [20, 100],
       doubleBorder: true,
@@ -191,7 +191,7 @@ export async function start(
     zombieTable.pushTo([
       [
         decorators.green("Provider"),
-        decorators.red(networkSpec.settings.provider),
+        decorators.blue(networkSpec.settings.provider),
       ],
       [decorators.green("Namespace"), namespace],
       [decorators.green("Temp Dir"), tmpDir.path],
@@ -205,7 +205,9 @@ export async function start(
     const isValid = await client.validateAccess();
     if (!isValid) {
       console.error(
-        `\n\t\t ${decorators.red("⚠ Can not access")} ${decorators.magenta(
+        `\n\t\t ${decorators.reverse(
+          decorators.red("⚠ Can not access"),
+        )} ${decorators.magenta(
           networkSpec.settings.provider,
         )}, please check your config.`,
       );
@@ -375,8 +377,15 @@ export async function start(
         [`Chain name: ${decorators.green(chainRawContent.name)}`],
       ]);
     } catch (err) {
+      console.log(
+        `\n ${decorators.red("Unexpected error: ")} \t ${decorators.bright(
+          err,
+        )}\n`,
+      );
       throw new Error(
-        `Error: chain-spec raw file at ${chainSpecFullPath} is not a valid JSON`,
+        `${decorators.red(`Error:`)} \t ${decorators.bright(
+          ` chain-spec raw file at ${chainSpecFullPath} is not a valid JSON`,
+        )}`,
       );
     }
 
@@ -841,7 +850,9 @@ export async function start(
 
     return network;
   } catch (error) {
-    console.error(error);
+    console.log(
+      `\n ${decorators.red("Error: ")} \t ${decorators.bright(error)}\n`,
+    );
     if (network) {
       await network.dumpLogs();
       await network.stop();
@@ -861,7 +872,9 @@ export async function test(
     network = await start(credentials, networkConfig, { force: true });
     await cb(network);
   } catch (error) {
-    console.error(error);
+    console.log(
+      `\n ${decorators.red("Error: ")} \t ${decorators.bright(error)}\n`,
+    );
   } finally {
     if (network) {
       await network.dumpLogs();

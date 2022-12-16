@@ -3,6 +3,7 @@ import dns from "dns";
 import fs from "fs";
 import { AddressInfo, createServer } from "net";
 import os from "os";
+import { decorators } from "./colors";
 
 export async function getRandomPort(): Promise<number> {
   const inner = async () => {
@@ -48,6 +49,10 @@ export async function downloadFile(url: string, dest: string): Promise<void> {
       });
     });
   } catch (err) {
-    console.log("Unexpected error: ", err);
+    console.log(
+      `\n ${decorators.red("Unexpected error: ")} \t ${decorators.bright(
+        err,
+      )}\n`,
+    );
   }
 }

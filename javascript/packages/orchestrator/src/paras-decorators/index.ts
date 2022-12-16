@@ -3,9 +3,11 @@ enum PARA {
   Moonbeam = "moonbeam",
   Efinity = "efinity",
   Acala = "acala",
+  Astar = "astar",
   Bifrost = "bifrost",
   Equilibrium = "equilibrium",
   Oak = "oak",
+  Mangata = "mangata",
   Generic = "generic",
 }
 
@@ -15,9 +17,11 @@ interface ParaDecorator {
 
 // imports
 import acala from "./acala";
+import astar from "./astar";
 import bifrost from "./bifrost";
 import efinity from "./efinity";
 import equilibrium from "./equilibrium";
+import mangata from "./mangata";
 import moonbeam from "./moonbeam";
 import oak from "./oak";
 import statemint from "./statemint";
@@ -27,9 +31,11 @@ function whichPara(chain: string): PARA {
   if (/moonbase|moonriver|moonbeam/.test(chain)) return PARA.Moonbeam;
   if (/efinity|rocfinity/.test(chain)) return PARA.Efinity;
   if (/acala|karura|mandala/.test(chain)) return PARA.Acala;
+  if (/astar|shiden|shibuya/.test(chain)) return PARA.Astar;
   if (/bifrost/.test(chain)) return PARA.Bifrost;
   if (/equilibrium|genshiro/.test(chain)) return PARA.Equilibrium;
   if (/oak|turing|neumann/.test(chain)) return PARA.Oak;
+  if (/mangata/.test(chain)) return PARA.Mangata;
 
   return PARA.Generic;
 }
@@ -63,6 +69,11 @@ const acalaDecorators: ParaDecorator = Object.keys(acala).reduce((memo, fn) => {
   return memo;
 }, Object.create({}));
 
+const astarDecorators: ParaDecorator = Object.keys(astar).reduce((memo, fn) => {
+  memo[fn] = (astar as ParaDecorator)[fn];
+  return memo;
+}, Object.create({}));
+
 const bifrostDecorators: ParaDecorator = Object.keys(bifrost).reduce(
   (memo, fn) => {
     memo[fn] = (bifrost as ParaDecorator)[fn];
@@ -84,14 +95,24 @@ const oakDecorators: ParaDecorator = Object.keys(oak).reduce((memo, fn) => {
   return memo;
 }, Object.create({}));
 
+const mangataDecorators: ParaDecorator = Object.keys(mangata).reduce(
+  (memo, fn) => {
+    memo[fn] = (mangata as ParaDecorator)[fn];
+    return memo;
+  },
+  Object.create({}),
+);
+
 const decorators: { [para in PARA]: { [fn: string]: Function } } = {
   moonbeam: moonbeamDecorators,
   statemint: statemintDecorators,
   efinity: efinityDecorators,
   acala: acalaDecorators,
+  astar: astarDecorators,
   bifrost: bifrostDecorators,
   equilibrium: eqDecorators,
   oak: oakDecorators,
+  mangata: mangataDecorators,
   generic: {},
 };
 

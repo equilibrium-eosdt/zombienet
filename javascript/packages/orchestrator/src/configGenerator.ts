@@ -1,7 +1,12 @@
 import fs from "fs";
 import path, { resolve } from "path";
 
-import { getRandomPort, getSha256 } from "@zombienet/utils";
+import {
+  decorators,
+  getRandomPort,
+  getSha256,
+  validateImageUrl,
+} from "@zombienet/utils";
 import {
   ARGS_TO_REMOVE,
   DEFAULT_ADDER_COLLATOR_BIN,
@@ -42,6 +47,48 @@ const DEFAULT_ENV: envVars[] = [
   { name: "RUST_BACKTRACE", value: "FULL" },
 ];
 
+const isIterable = (obj: any) => {
+  // checks for null and undefined
+  if (obj == null || typeof obj == "string") {
+    return false;
+  }
+  return typeof obj[Symbol.iterator] === "function";
+};
+
+const configurationFileChecks = (config: LaunchConfig): void => {
+  if ((config as any).hrmpChannels) {
+    throw new Error(
+      "'hrmpChannel' value the given configuration file is deprecated; Please use 'hrmp_channel' instead;",
+    );
+  }
+
+  validateImageUrl(config?.relaychain?.default_image || DEFAULT_IMAGE);
+  if (
+    config?.relaychain?.node_groups &&
+    isIterable(config?.relaychain?.node_groups)
+  )
+    for (const nodeGroup of config?.relaychain?.node_groups || []) {
+      validateImageUrl(
+        nodeGroup?.image || config?.relaychain.default_image || DEFAULT_IMAGE,
+      );
+    }
+  if (config?.parachains && isIterable(config?.parachains))
+    for (const parachain of config?.parachains) {
+      if (parachain?.collator_groups && isIterable(parachain?.collator_groups))
+        for (const collatorGroup of parachain?.collator_groups || []) {
+          validateImageUrl(
+            collatorGroup?.image ||
+              config?.relaychain?.default_image ||
+              DEFAULT_COLLATOR_IMAGE,
+          );
+        }
+      if (parachain?.collators && isIterable(parachain?.collators))
+        for (const collatorConfig of parachain?.collators || []) {
+          validateImageUrl(collatorConfig?.image || DEFAULT_COLLATOR_IMAGE);
+        }
+    }
+};
+
 export async function generateNetworkSpec(
   config: LaunchConfig,
 ): Promise<ComputedNetwork> {
@@ -78,6 +125,10 @@ export async function generateNetworkSpec(
     parachains: [],
   };
 
+  // check all imageURLs for validity
+  // TODO: These checks should be agains all config items that needs check
+  configurationFileChecks(config);
+
   if (config.relaychain.genesis)
     networkSpec.relaychain.genesis = config.relaychain.genesis;
   const chainName = config.relaychain.chain || DEFAULT_CHAIN;
@@ -103,7 +154,11 @@ export async function generateNetworkSpec(
       config.relaychain.chain_spec_path,
     );
     if (!fs.existsSync(chainSpecPath)) {
-      console.error("Chain spec provided does not exist: ", chainSpecPath);
+      console.error(
+        decorators.red(
+          `Genesis spec provided does not exist: ${chainSpecPath}`,
+        ),
+      );
       process.exit();
     } else {
       networkSpec.relaychain.chainSpecPath = chainSpecPath;
@@ -256,8 +311,9 @@ export async function generateNetworkSpec(
         );
         if (!fs.existsSync(genesisStatePath)) {
           console.error(
-            "Genesis spec provided does not exist: ",
-            genesisStatePath,
+            decorators.red(
+              `Genesis spec provided does not exist: ${genesisStatePath}`,
+            ),
           );
           process.exit();
         } else {
@@ -278,8 +334,9 @@ export async function generateNetworkSpec(
         );
         if (!fs.existsSync(genesisWasmPath)) {
           console.error(
-            "Genesis spec provided does not exist: ",
-            genesisWasmPath,
+            decorators.red(
+              `Genesis spec provided does not exist: ${genesisWasmPath}`,
+            ),
           );
           process.exit();
         } else {
@@ -316,7 +373,9 @@ export async function generateNetworkSpec(
         const chainSpecPath = resolve(process.cwd(), parachain.chain_spec_path);
         if (!fs.existsSync(chainSpecPath)) {
           console.error(
-            `Chain spec provided for parachain id: ${parachain.id} does not exist: ${chainSpecPath}`,
+            decorators.red(
+              `Chain spec provided for parachain id: ${parachain.id} does not exist: ${chainSpecPath}`,
+            ),
           );
           process.exit();
         } else {
@@ -500,7 +559,7 @@ async function getNodeFromConfig(
   const command = node.command
     ? node.command
     : networkSpec.relaychain.defaultCommand;
-  const image = node.image ? node.image : networkSpec.relaychain.defaultImage;
+  const image = node.image || networkSpec.relaychain.defaultImage;
   let args: string[] = sanitizeArgs(networkSpec.relaychain.defaultArgs || []);
   if (node.args) args = args.concat(sanitizeArgs(node.args));
 

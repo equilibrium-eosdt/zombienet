@@ -37,6 +37,8 @@ export interface Settings {
   backchannel?: boolean; // only used in k8s at the moment, spawn a backchannel instance
   image_pull_policy?: "IfNotPresent" | "Never" | "Always";
   local_ip?: string; // ip used for expose local services (rpc/metrics/monitors)
+  pre_start?: string[];
+  post_start?: string[];
 }
 
 export interface RelayChainConfig {

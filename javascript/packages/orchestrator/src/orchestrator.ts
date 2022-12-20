@@ -53,6 +53,7 @@ import {
   WS_URI_PATTERN,
   ZOMBIE_WRAPPER,
 } from "./constants";
+import YAML from "yaml";
 import { registerParachain } from "./jsapi-helpers";
 import { generateKeystoreFiles } from "./keys";
 import { Network, Scope } from "./network";
@@ -642,6 +643,24 @@ export async function start(
       }
     };
 
+    const runActions = async (actionPaths: string[]) => {
+      const defs = await Promise.all(actionPaths.map(async (path) => {
+        const source = await fs.promises.readFile(path, { flag: 'r' });
+        if (path.endsWith(".yml") || path.endsWith(".yaml")) {
+          return YAML.parse(source.toString());
+        } else {
+          return JSON.parse(source.toString());
+        }
+      }));
+      
+      for (const def of defs) {
+        await client.createResource(def);
+      }
+    }
+
+    // pre-start actions
+    runActions(launchConfig.settings.pre_start || []);
+
     const firstNode = networkSpec.relaychain.nodes.shift();
     if (firstNode) {
       await spawnNode(firstNode, network);
@@ -835,6 +854,9 @@ export async function start(
           break;
       }
     }
+
+    // post-start actions
+    runActions(launchConfig.settings.post_start || []);
 
     // cleanup global timeout
     network.launched = true;

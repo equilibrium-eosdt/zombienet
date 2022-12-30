@@ -13,7 +13,7 @@
             {
                 "image": "paritytech/polkadot-introspector:latest",
                 "name": "introspector",
-                "imagePullPolicy": "Always",
+                "imagePullPolicy": "IfNotPresent",
                 "ports": [
                     {
                         "containerPort": 65432

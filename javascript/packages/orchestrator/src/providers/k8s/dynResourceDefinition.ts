@@ -102,7 +102,7 @@ function make_transfer_containter(): any {
   return {
     name: TRANSFER_CONTAINER_NAME,
     image: "docker.io/alpine",
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     volumeMounts: [
       { name: "tmp-cfg", mountPath: "/cfg", readOnly: false },
       { name: "tmp-data", mountPath: "/data", readOnly: false },
@@ -162,7 +162,7 @@ async function make_main_container(
   const containerDef: any = {
     image: nodeSetup.image,
     name: nodeSetup.name,
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     env: nodeSetup.env,
     volumeMounts: volume_mounts,

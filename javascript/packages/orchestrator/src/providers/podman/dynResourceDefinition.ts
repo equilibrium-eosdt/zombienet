@@ -92,7 +92,7 @@ scrape_configs:
   const containerDef = {
     image: "docker.io/prom/prometheus",
     name: "prometheus",
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     volumeMounts: volume_mounts,
   };
@@ -176,7 +176,7 @@ datasources:
   const containerDef = {
     image: "docker.io/grafana/grafana",
     name: "grafana",
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     volumeMounts: volume_mounts,
   };
@@ -220,7 +220,7 @@ export async function getIntrospectorDef(
     image: "docker.io/paritytech/polkadot-introspector:latest",
     name: INTROSPECTOR_POD_NAME,
     args: ["block-time-monitor", `--ws=${wsUri}`, "prometheus"],
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     volumeMounts: [],
   };
@@ -302,7 +302,7 @@ export async function genTempoDef(namespace: string): Promise<any> {
     image: "docker.io/grafana/tempo:latest",
     name: "tempo",
     args: ["-config.file=/etc/tempo/tempo.yaml"],
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     volumeMounts: volume_mounts,
   };
@@ -425,7 +425,7 @@ async function make_main_container(
   let containerDef = {
     image: nodeSetup.image,
     name: nodeSetup.name,
-    imagePullPolicy: "Always",
+    imagePullPolicy: "IfNotPresent",
     ports,
     env: nodeSetup.env,
     volumeMounts: volume_mounts,

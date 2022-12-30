@@ -702,7 +702,7 @@ export class KubeClient extends Client {
   async isPodMonitorAvailable() {
     let available = false;
     try {
-      const result = await execa.command("kubectl api-resources -o name");
+      const result = await this.runCommand(["api-resources", "-o", "name"], { allowFail: true });
       if (result.exitCode == 0) {
         if (result.stdout.includes("podmonitor")) available = true;
       }
